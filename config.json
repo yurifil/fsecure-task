@@ -1,0 +1,14 @@
+{
+  "base_uri": "https://worldmap3.f-secure.com/start",
+  "stream_path": "stream_url",
+  "top10_path": "top10_24h_url",
+  "histogram_path": "histogram_24h_url",
+  "schema": "https",
+  "http": {
+    "retry_timeout": 10,
+    "retries": 3
+  },
+  "log_level": "DEBUG",
+  "refresh_multiplicator": 0.5,
+  "logdir": "./logs"
+}
