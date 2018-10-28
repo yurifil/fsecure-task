@@ -6,6 +6,9 @@ logger = get_logger()
 
 
 class HttpReader(object):
+
+    """Sends HTTP GET requests to given URL and returns specified container with retrieved JSON."""
+
     def __init__(self, config):
         self.config = config
 

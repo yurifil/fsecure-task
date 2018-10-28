@@ -5,7 +5,7 @@
   "histogram_path": "histogram_24h_url",
   "schema": "https",
   "http": {
-    "retry_timeout": 10,
+    "retry_interval": 10,
     "retries": 3
   },
   "log_level": "DEBUG",

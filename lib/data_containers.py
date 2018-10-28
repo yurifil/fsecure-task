@@ -16,12 +16,35 @@ class BaseContainer(object):
         raise NotImplementedError
 
 
-class Top10(BaseContainer):
+class Histogram(BaseContainer):
+    pass
+
+
+class Start(BaseContainer):
+    def get_url(self, path):
+        return self.get_data()[path]
+
+
+class DetectionsContainer(BaseContainer):
+    def get_polling_interval(self):
+        return self._json['polling_interval']
+
+    def get_detections(self):
+        return self._json['detections']
+
+
+class Top10(DetectionsContainer):
+
+    """Contains data for TOP-10 detections."""
+
     def update(self, container):
         pass
 
 
-class Stream(BaseContainer):
+class Stream(DetectionsContainer):
+
+    """Contains data for newest detections stream."""
+
     @staticmethod
     def __make_id(detection):
         return f'{detection["city"]}::{detection["name"]}::{detection["country"]}::{detection["long"]}::{detection["lat"]}::{detection["type"]}'
@@ -34,13 +57,8 @@ class Stream(BaseContainer):
         super().__init__(*args, **kwargs)
         self.current_set = Stream.__make_set(self.get_detections())
 
-    def get_polling_interval(self):
-        return self._json['polling_interval']
-
-    def get_detections(self):
-        return self._json['detections']
-
     def update(self, container):
+        """Replaces current detections with newest detections from stream that are not found in previous poll."""
         new_json = container.get_data()
         new_detections = []
         new_set = Stream.__make_set(new_json['detections'])
@@ -51,12 +69,3 @@ class Stream(BaseContainer):
                 new_detections.append(detection)
         new_json['detections'] = new_detections
         self._json = new_json
-
-
-class Histogram(BaseContainer):
-    pass
-
-
-class Start(BaseContainer):
-    def get_url(self, path):
-        return self.get_data()[path]

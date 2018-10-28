@@ -10,6 +10,9 @@ logger = get_logger()
 
 
 class Poller(object):
+
+    """Polls data sources and puts obtained data to message queues."""
+
     def __init__(self, config):
         self.config = config
         self.reader = HttpReader(config)
@@ -43,7 +46,7 @@ class Poller(object):
             stream = self.__read_stream_path()
             logger.debug(f'Putting {stream} to StreamQueue')
             StreamQueue.put(stream)
-            wait_for = stream.get_polling_interval() / 2
+            wait_for = stream.get_polling_interval() * self.config.get_refresh_multiplicator()
             logger.debug(f'Waiting for {wait_for}')
             time.sleep(wait_for)
 

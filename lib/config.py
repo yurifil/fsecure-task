@@ -2,6 +2,9 @@ import json
 
 
 class Config(object):
+
+    """Stores application configuration"""
+
     def __init__(self, path):
         self._config = None
         self._path_to_config = path
@@ -24,7 +27,7 @@ class Config(object):
         return self._config['histogram_path']
 
     def get_http_retry_timeout(self):
-        return self._config['http']['retry_timeout']
+        return self._config['http']['retry_interval']
 
     def get_http_retries(self):
         return self._config['http']['retries']

@@ -1,5 +1,4 @@
 from lib.messages_queue import StreamQueue, Top10Queue
-import time
 import threading
 from lib.logger import get_logger
 
@@ -30,14 +29,17 @@ class BaseRepresentation(object):
 
 
 class Top10Representation(BaseRepresentation):
+
+    """This class prints top10 detections."""
+
     __header = ('Name', 'Count')
     queue = Top10Queue
 
     def __setup_table(self):
-        self.max_left_length = max([len(k['name']) for k in self.container.get_data()['detections']])
+        self.max_left_length = max([len(k['name']) for k in self.container.get_detections()])
         if self.max_left_length < len(Top10Representation.__header[0]):
             self.max_left_length = len(Top10Representation.__header[0])
-        self.max_right_length = max([len(str(k['count'])) for k in self.container.get_data()['detections']])
+        self.max_right_length = max([len(str(k['count'])) for k in self.container.get_detections()])
         if self.max_right_length < len(Top10Representation.__header[1]):
             self.max_right_length = len(Top10Representation.__header[1])
 
@@ -59,7 +61,7 @@ class Top10Representation(BaseRepresentation):
         self.__print_horizontal_delimiter('-')
         self.__print_line(Top10Representation.__header[0], Top10Representation.__header[1])
         self.__print_horizontal_delimiter('-')
-        for r in self.container.get_data()['detections']:
+        for r in self.container.get_detections():
             self.__print_line(r['name'], r['count'])
         self.__print_horizontal_delimiter('-')
 
@@ -68,10 +70,13 @@ class Top10Representation(BaseRepresentation):
 
 
 class StreamRepresentation(BaseRepresentation):
+
+    """This class prints newest detections from stream."""
+
     queue = StreamQueue
 
     def __print_line(self, row):
-        print(f'Country: {row["country"]}; City: {row["city"]}; Type: {row["type"]}; Name: {row["name"]}')
+        print(f'Country: {row["country"]}; Place: {row["city"]}({row["long"]} {row["lat"]}); Type: {row["type"]}; Name: {row["name"]}')
 
     def represent(self):
         logger.debug(f'Started {threading.current_thread().getName()} thread.')
@@ -80,5 +85,5 @@ class StreamRepresentation(BaseRepresentation):
             logger.debug(f"Reading from {self.queue} queue")
             self._read_queue()
             logger.debug(f"Printing detections")
-            for r in self.container.get_data()['detections']:
+            for r in self.container.get_detections():
                 self.__print_line(r)
