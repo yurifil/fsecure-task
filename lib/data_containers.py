@@ -59,7 +59,7 @@ class Stream(DetectionsContainer):
 
     def update(self, container):
         """Replaces current detections with newest detections from stream that are not found in previous poll."""
-        new_json = container.get_data()
+        new_json = container.get_data().copy()
         new_detections = []
         new_set = Stream.__make_set(new_json['detections'])
         difference = new_set.difference(self.current_set)
@@ -69,3 +69,22 @@ class Stream(DetectionsContainer):
                 new_detections.append(detection)
         new_json['detections'] = new_detections
         self._json = new_json
+
+
+if __name__ == '__main__':
+    obj1 = {'detections':
+            [{'city': '', 'name': 'Suspicious:W32/Riskware.0abd19df41!Online', 'country': 'FI', 'long': '24.9375', 'lat': '60.1708', 'type': 'Suspicious:W32/Riskware'},
+             {'city': 'Dornstadt', 'name': 'Trojan.Exploit.ANXM', 'country': 'DE', 'long': '9.95', 'lat': '48.4667', 'type': 'Trojan'},
+             {'city': 'Ponda', 'name': 'Trojan:W32/Downadup.AL', 'country': 'IN', 'long': '74.0167', 'lat': '15.4', 'type': 'Trojan:W32/Downadup'},
+             {'city': 'Beograd', 'name': 'Trojan.JAVA.Agent.MP', 'country': 'RS', 'long': '20.4681', 'lat': '44.8186', 'type': 'Trojan'},
+             {'city': '', 'name': 'Trojan.Generic.23025481', 'country': 'JP', 'long': '139.69', 'lat': '35.69', 'type': 'Trojan'}]
+            }
+    obj2 = {'detections':
+                [{'city': '', 'name': 'Suspicious:W32/Riskware.0abd19df41!Online', 'country': 'FI', 'long': '24.9375', 'lat': '60.1708', 'type': 'Suspicious:W32/Riskware'},
+                 {'city': 'asdfg', 'name': 'Ugly.Malware', 'country': '', 'long': '24.9375', 'lat': '60.1708', 'type': 'Ugly'}]
+            }
+    s = Stream(obj1)
+    assert len(s.get_detections()) == 5
+    s2 = Stream(obj2)
+    s.update(s2)
+    assert len(s.get_detections()) == 1

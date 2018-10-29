@@ -16,16 +16,38 @@ class HttpReader(object):
         logger.info('Reading {}'.format(path))
         retries = self.config.get_http_retries()
         while True:
-            r = requests.get(path)
+            try:
+                r = requests.get(path)
+            except Exception as e:
+                logger.error(f'Cannot read {path}. Error: {e}')
+                raise e
             if r.status_code == 200:
-                return container(r.json())
+                try:
+                    return container(r.json())
+                except Exception as e:
+                    logger.error(f'Cannot decode JSON from {path}: {e}')
+                    raise e
+            logger.warning('Non-200 http code received. Retrying.')
             if retries <= 0:
-                raise ValueError('Cannot read {}. No retries left.'.format(path))
+                error_msg = f'Cannot read {path}. No retries left.'
+                logger.error(error_msg)
+                raise ValueError(error_msg)
             retries -= 1
             time.sleep(self.config.get_http_retry_timeout())
 
-    def get_top10(self):
-        pass
 
-    def get_stream(self):
-        pass
+if __name__ == '__main__':
+    from lib.config import Config
+    from lib.data_containers import BaseContainer
+    from lib.logger import init_logger
+    config = Config('config.json')
+    init_logger(config)
+    reader = HttpReader(config)
+    try:
+        reader.read('blahblah', BaseContainer)
+    except requests.exceptions.MissingSchema as e:
+        print(f'Missing schema. {e}')
+    try:
+        reader.read('http://yandex.ru', BaseContainer)
+    except Exception as e:
+        print(e)

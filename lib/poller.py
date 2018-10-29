@@ -37,20 +37,39 @@ class Poller(object):
         return self.reader.read(histogram_url, Histogram)
 
     def put_top10(self):
-        top10 = self.__read_top10()
-        Top10Queue.put(top10)
+        try:
+            top10 = self.__read_top10()
+            Top10Queue.put(top10)
+        except Exception as e:
+            error_msg = f'Cannot put top10 data to queue: {e}'
+            logger.error(error_msg)
+            raise e
 
     def put_stream(self):
         logger.debug(f'Started {threading.current_thread().getName()} thread.')
         while True:
-            stream = self.__read_stream_path()
-            logger.debug(f'Putting {stream} to StreamQueue')
-            StreamQueue.put(stream)
-            wait_for = stream.get_polling_interval() * self.config.get_refresh_multiplicator()
-            logger.debug(f'Waiting for {wait_for}')
-            time.sleep(wait_for)
+            try:
+                stream = self.__read_stream_path()
+                logger.debug(f'Putting {stream} to StreamQueue')
+                StreamQueue.put(stream)
+                wait_for = stream.get_polling_interval() * self.config.get_refresh_multiplicator()
+                logger.debug(f'Waiting for {wait_for}')
+                time.sleep(wait_for)
+            except Exception as e:
+                error_msg = f'Cannot put stream data to queue: {e}'
+                logger.error(error_msg)
+                raise e
 
     def run(self):
         self.put_top10()
         stream_thread = threading.Thread(name=f"{self.__class__.__name__}-Stream", target=self.put_stream)
         stream_thread.start()
+
+
+if __name__ == '__main__':
+    from lib.config import Config
+    c = Config('config.json')
+    p = Poller(c)
+    p.put_top10()
+    el = Top10Queue.get()
+    print(el.get_data())
